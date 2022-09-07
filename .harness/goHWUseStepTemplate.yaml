@@ -1,0 +1,30 @@
+pipeline:
+  name: go-HW-Use-Step-Template
+  identifier: goHWUseStepTemplate
+  projectIdentifier: Git_Template
+  orgIdentifier: default
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.suranc_Account_Level
+        repoName: go-hello-world
+        build: <+input>
+  stages:
+    - stage:
+        name: Build Go HW
+        identifier: Build_Go_HW
+        template:
+          templateRef: account.Build_Dockerfile_Stage
+          versionLabel: "1.0"
+          templateInputs:
+            type: CI
+            spec:
+              execution:
+                steps:
+                  - step:
+                      identifier: Build_Dockerfile
+                      type: BuildAndPushDockerRegistry
+                      spec:
+                        tags: <+input>
+                        repo: ghcr.io/suranc/go-hello-world
