@@ -1,0 +1,38 @@
+pipeline:
+  name: Build Docker Image
+  identifier: Build_Docker_Image
+  projectIdentifier: Git_Template
+  orgIdentifier: default
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.suranc_Account_Level
+        repoName: go-hello-world
+        build: <+input>
+  stages:
+    - stage:
+        name: Build Dockerfile
+        identifier: Build_Dockerfile
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          execution:
+            steps:
+              - step:
+                  type: BuildAndPushDockerRegistry
+                  name: Build Dockerfile
+                  identifier: Build_Dockerfile
+                  spec:
+                    connectorRef: account.Account_Level_suranc_GitHub_Docker_Registry
+                    repo: go-hello-world
+                    tags: <+input>
+                  failureStrategies: []
+          infrastructure:
+            type: KubernetesDirect
+            spec:
+              connectorRef: account.sacluster
+              namespace: chris-builds
+              nodeSelector: {}
+              os: Linux
