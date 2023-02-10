@@ -1,0 +1,57 @@
+template:
+  name: Simple Example Template
+  identifier: Simple_Example_Template
+  type: Pipeline
+  tags: {}
+  spec:
+    stages:
+      - stage:
+          name: Hello World
+          identifier: Hello_World
+          description: ""
+          type: Deployment
+          spec:
+            deploymentType: Kubernetes
+            service:
+              serviceRef: <+input>
+              serviceInputs: <+input>
+            environment:
+              environmentRef: <+input>
+              deployToAll: false
+              environmentInputs: <+input>
+              serviceOverrideInputs: <+input>
+              infrastructureDefinitions: <+input>
+            execution:
+              steps:
+                - step:
+                    type: ShellScript
+                    name: Shell Script_1
+                    identifier: ShellScript_1
+                    spec:
+                      shell: Bash
+                      onDelegate: true
+                      source:
+                        type: Inline
+                        spec:
+                          script: echo <+pipeline.variables.message> extra stuff 1.0.1
+                      environmentVariables: []
+                      outputVariables: []
+                    timeout: 10m
+              rollbackSteps: []
+          tags: {}
+          failureStrategies:
+            - onFailure:
+                errors:
+                  - AllErrors
+                action:
+                  type: StageRollback
+    variables:
+      - name: message
+        type: String
+        description: ""
+        value: <+input>
+      - name: second_input
+        type: String
+        description: ""
+        value: <+input>
+  versionLabel: 2.0.0
