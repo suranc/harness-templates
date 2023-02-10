@@ -34,7 +34,7 @@ template:
                       source:
                         type: Inline
                         spec:
-                          script: echo <+pipeline.variables.message> extra stuff
+                          script: echo <+pipeline.variables.message> extra stuff gitx
                       environmentVariables: []
                       outputVariables: []
                     timeout: 10m
