@@ -93,8 +93,8 @@ template:
                       privileged: true
                       image:
                         type: docker_v2
-                        name: suranc/spring-forward-harness-example
-                        domain: ghcr.io
+                        name: <+pipeline.stages.Preprocessing.spec.execution.steps.Prepare_Variables.output.outputVariables.docker_repository>
+                        domain: "<+pipeline.stages.Preprocessing.spec.execution.steps.Prepare_Variables.output.outputVariables.docker_repository> "
                         tag: <+pipeline.variables.docker_tag>
       - stage:
           name: Deploy to Test
