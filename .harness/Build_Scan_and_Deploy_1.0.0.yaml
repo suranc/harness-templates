@@ -43,8 +43,8 @@ template:
                           cpu: "1"
                     failureStrategies: []
       - stage:
-          name: Deploy Image
-          identifier: Deploy_Image
+          name: Deploy to Test
+          identifier: Deploy_to_Test
           description: ""
           type: Deployment
           spec:
