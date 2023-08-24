@@ -34,7 +34,13 @@ template:
                             export DOCKER_REGISTRY=$(echo <+pipeline.variables.docker_image> | cut -d'/' -f1)
                             export DOCKER_REPOSITORY=$(echo <+pipeline.variables.docker_image> | cut -d'/' -f2-)
                       environmentVariables: []
-                      outputVariables: []
+                      outputVariables:
+                        - name: docker_registry
+                          type: String
+                          value: DOCKER_REGISTRY
+                        - name: docker_repository
+                          type: String
+                          value: DOCKER_REPOSITORY
                     timeout: 10m
           tags: {}
       - stage:
@@ -94,7 +100,7 @@ template:
                       image:
                         type: docker_v2
                         name: <+pipeline.stages.Preprocessing.spec.execution.steps.Prepare_Variables.output.outputVariables.docker_repository>
-                        domain: "<+pipeline.stages.Preprocessing.spec.execution.steps.Prepare_Variables.output.outputVariables.docker_repository> "
+                        domain: <+pipeline.stages.Preprocessing.spec.execution.steps.Prepare_Variables.output.outputVariables.docker_registry>
                         tag: <+pipeline.variables.docker_tag>
       - stage:
           name: Deploy to Test
