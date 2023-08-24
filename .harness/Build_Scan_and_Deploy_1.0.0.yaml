@@ -75,7 +75,7 @@ template:
                     identifier: Build_Image
                     spec:
                       connectorRef: <+input>
-                      repo: <+input>
+                      repo: <+pipeline.variables.docker_image>
                       tags:
                         - <+pipeline.variables.docker_tag>
                       resources:
