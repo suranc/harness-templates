@@ -29,6 +29,16 @@ template:
             execution:
               steps:
                 - step:
+                    type: Background
+                    name: Dind
+                    identifier: Dind
+                    spec:
+                      connectorRef: account.harnessImage
+                      image: docker:dind
+                      shell: Sh
+                      command: dockerd
+                      privileged: true
+                - step:
                     type: BuildAndPushDockerRegistry
                     name: Build Image
                     identifier: Build_Image
@@ -42,6 +52,26 @@ template:
                           memory: 2Gi
                           cpu: "1"
                     failureStrategies: []
+                - step:
+                    type: Grype
+                    name: Scan Image with Grype
+                    identifier: Scan_Image_with_Grype
+                    spec:
+                      mode: orchestration
+                      config: default
+                      target:
+                        name: ghcr.io/suranc/spring-forward-harness-example
+                        type: container
+                        variant: teststo
+                      advanced:
+                        log:
+                          level: info
+                      privileged: true
+                      image:
+                        type: docker_v2
+                        name: suranc/spring-forward-harness-example
+                        domain: ghcr.io
+                        tag: teststo
       - stage:
           name: Deploy to Test
           identifier: Deploy_to_Test
