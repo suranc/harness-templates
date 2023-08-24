@@ -52,8 +52,8 @@ template:
             infrastructure:
               type: KubernetesDirect
               spec:
-                connectorRef: account.sacluster
-                namespace: default
+                connectorRef: <+input>
+                namespace: <+input>
                 automountServiceAccountToken: true
                 nodeSelector: {}
                 os: Linux
@@ -74,7 +74,7 @@ template:
                     name: Build Image
                     identifier: Build_Image
                     spec:
-                      connectorRef: account.Account_Level_suranc_GitHub_Docker_Registry
+                      connectorRef: <+input>
                       repo: <+input>
                       tags:
                         - <+pipeline.variables.docker_tag>
