@@ -13,6 +13,31 @@ template:
           build: <+input>
     stages:
       - stage:
+          name: Preprocessing
+          identifier: Preprocessing
+          description: ""
+          type: Custom
+          spec:
+            execution:
+              steps:
+                - step:
+                    type: ShellScript
+                    name: Prepare Variables
+                    identifier: Prepare_Variables
+                    spec:
+                      shell: Bash
+                      onDelegate: true
+                      source:
+                        type: Inline
+                        spec:
+                          script: |-
+                            export DOCKER_REGISTRY=$(echo <+pipeline.variables.docker_image> | cut -d'/' -f1)
+                            export DOCKER_REPOSITORY=$(echo <+pipeline.variables.docker_image> | cut -d'/' -f2-)
+                      environmentVariables: []
+                      outputVariables: []
+                    timeout: 10m
+          tags: {}
+      - stage:
           name: Build Image
           identifier: Build_Image
           type: CI
