@@ -1,0 +1,128 @@
+template:
+  name: Build and Deploy PR
+  identifier: Build_and_Deploy_PR
+  versionLabel: 1.0.0
+  type: Pipeline
+  tags: {}
+  spec:
+    properties:
+      ci:
+        codebase:
+          connectorRef: <+input>
+          repoName: <+input>
+          build: <+input>
+    stages:
+      - stage:
+          name: Build Image
+          identifier: Build_Image
+          type: CI
+          spec:
+            cloneCodebase: true
+            infrastructure:
+              type: KubernetesDirect
+              spec:
+                connectorRef: account.sacluster
+                namespace: default
+                automountServiceAccountToken: true
+                nodeSelector: {}
+                os: Linux
+            execution:
+              steps:
+                - step:
+                    type: BuildAndPushDockerRegistry
+                    name: Build Image
+                    identifier: Build_Image
+                    spec:
+                      connectorRef: account.Account_Level_suranc_GitHub_Docker_Registry
+                      repo: <+input>
+                      tags:
+                        - harness-<+codebase.commitSha>
+                      resources:
+                        limits:
+                          memory: 2Gi
+                          cpu: "1"
+                    failureStrategies: []
+      - stage:
+          name: Deploy Image
+          identifier: Deploy_Image
+          description: ""
+          type: Deployment
+          spec:
+            deploymentType: Kubernetes
+            service:
+              serviceRef: <+input>
+              serviceInputs: <+input>
+            environment:
+              environmentRef: <+input>
+              deployToAll: false
+              environmentInputs: <+input>
+              serviceOverrideInputs: <+input>
+              infrastructureDefinitions: <+input>
+            execution:
+              steps:
+                - stepGroup:
+                    name: Canary Deployment
+                    identifier: canaryDepoyment
+                    steps:
+                      - step:
+                          name: Canary Deployment
+                          identifier: canaryDeployment
+                          type: K8sCanaryDeploy
+                          timeout: 10m
+                          spec:
+                            instanceSelection:
+                              type: Count
+                              spec:
+                                count: 1
+                            skipDryRun: false
+                      - step:
+                          type: ShellScript
+                          name: Verify
+                          identifier: Verify
+                          spec:
+                            shell: Bash
+                            onDelegate: true
+                            source:
+                              type: Inline
+                              spec:
+                                script: echo Verifying
+                            environmentVariables: []
+                            outputVariables: []
+                          timeout: 10m
+                      - step:
+                          name: Canary Delete
+                          identifier: canaryDelete
+                          type: K8sCanaryDelete
+                          timeout: 10m
+                          spec: {}
+                - stepGroup:
+                    name: Primary Deployment
+                    identifier: primaryDepoyment
+                    steps:
+                      - step:
+                          name: Rolling Deployment
+                          identifier: rollingDeployment
+                          type: K8sRollingDeploy
+                          timeout: 10m
+                          spec:
+                            skipDryRun: false
+              rollbackSteps:
+                - step:
+                    name: Canary Delete
+                    identifier: rollbackCanaryDelete
+                    type: K8sCanaryDelete
+                    timeout: 10m
+                    spec: {}
+                - step:
+                    name: Rolling Rollback
+                    identifier: rollingRollback
+                    type: K8sRollingRollback
+                    timeout: 10m
+                    spec: {}
+          tags: {}
+          failureStrategies:
+            - onFailure:
+                errors:
+                  - AllErrors
+                action:
+                  type: StageRollback
