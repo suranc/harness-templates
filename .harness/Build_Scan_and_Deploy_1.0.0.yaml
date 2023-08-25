@@ -194,14 +194,8 @@ template:
                             isMultiServicesOrEnvs: false
                             type: Canary
                             monitoredService:
-                              type: Template
-                              spec:
-                                monitoredServiceTemplateRef: account.Monitored_Service_Template
-                                versionLabel: 1.0.0
-                                templateInputs:
-                                  type: Application
-                                  serviceRef: <+input>
-                                  environmentRef: <+input>
+                              type: Default
+                              spec: {}
                             spec:
                               sensitivity: MEDIUM
                               duration: 15m
@@ -267,9 +261,9 @@ template:
     variables:
       - name: docker_image
         type: String
-        description: "The image name where the image being built will be pushed to"
+        description: ""
         required: false
-        value: <+input>
+        value: <+input>.default(The image name where the image being built will be pushed to)
       - name: docker_tag
         type: String
         description: This is the tag to apply to the image being built
