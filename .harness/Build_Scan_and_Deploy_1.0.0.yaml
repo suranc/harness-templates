@@ -194,8 +194,14 @@ template:
                             isMultiServicesOrEnvs: false
                             type: Canary
                             monitoredService:
-                              type: Default
-                              spec: {}
+                              type: Template
+                              spec:
+                                monitoredServiceTemplateRef: account.Monitored_Service_Template
+                                versionLabel: 1.0.0
+                                templateInputs:
+                                  type: Application
+                                  serviceRef: <+input>
+                                  environmentRef: <+input>
                             spec:
                               sensitivity: MEDIUM
                               duration: 15m
