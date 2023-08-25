@@ -1,0 +1,46 @@
+template:
+  name: Monitored Service Template
+  identifier: Monitored_Service_Template
+  versionLabel: 1.0.0
+  type: MonitoredService
+  tags: {}
+  spec:
+    serviceRef: <+input>
+    environmentRef: <+input>
+    type: Application
+    sources:
+      healthSources:
+        - type: DatadogMetrics
+          identifier: Datadog
+          name: Datadog
+          spec:
+            connectorRef: account.test_datadog
+            feature: Datadog Cloud Metrics
+            metricDefinitions:
+              - identifier: CPU
+                dashboardName: CPU
+                metricPath: CPU
+                metricName: CPU
+                metric: kubernetes.cpu.usage.total
+                metricTags:
+                  - kube_namespace:<+infra.kube_namespace>
+                aggregation: avg
+                isManualQuery: true
+                isCustomCreatedMetric: true
+                groupingQuery: avg:kubernetes.cpu.usage.total{kube_namespace:<+infra.kube_namespace>} by {kube_replica_set}.rollup(avg, 60)
+                query: avg:kubernetes.cpu.usage.total{kube_namespace:<+infra.kube_namespace>}.rollup(avg, 60)
+                sli:
+                  enabled: false
+                analysis:
+                  riskProfile:
+                    riskCategory: Infrastructure
+                    thresholdTypes:
+                      - ACT_WHEN_LOWER
+                  liveMonitoring:
+                    enabled: false
+                  deploymentVerification:
+                    enabled: true
+                    serviceInstanceFieldName: kube_replica_set
+            metricPacks:
+              - identifier: Custom
+                metricThresholds: []
