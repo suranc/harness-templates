@@ -267,9 +267,9 @@ template:
     variables:
       - name: docker_image
         type: String
-        description: ""
+        description: "The image name where the image being built will be pushed to"
         required: false
-        value: <+input>.default(The image name where the image being built will be pushed to)
+        value: <+input>
       - name: docker_tag
         type: String
         description: This is the tag to apply to the image being built
