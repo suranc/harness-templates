@@ -102,6 +102,11 @@ template:
                         name: <+pipeline.stages.Preprocessing.spec.execution.steps.Prepare_Variables.output.outputVariables.docker_repository>
                         domain: <+pipeline.stages.Preprocessing.spec.execution.steps.Prepare_Variables.output.outputVariables.docker_registry>
                         tag: <+pipeline.variables.docker_tag>
+            sharedPaths:
+              - /var/run
+            caching:
+              enabled: false
+              paths: []
       - stage:
           name: Deploy to Test
           identifier: Deploy_to_Test
