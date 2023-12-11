@@ -36,12 +36,11 @@ template:
                       connectorRef: account.Account_Level_suranc_GitHub_Docker_Registry
                       repo: <+input>
                       tags:
-                        - harness-<+codebase.commitSha>
+                        - pr-<+codebase.commitSha>
                       resources:
                         limits:
                           memory: 2Gi
                           cpu: "1"
-                    failureStrategies: []
           description: ""
       - stage:
           name: Deploy Image
