@@ -42,6 +42,7 @@ template:
                           memory: 2Gi
                           cpu: "1"
                     failureStrategies: []
+          description: ""
       - stage:
           name: Deploy Image
           identifier: Deploy_Image
