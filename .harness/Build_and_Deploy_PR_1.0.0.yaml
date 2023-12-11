@@ -37,6 +37,8 @@ template:
                       repo: <+input>
                       tags:
                         - pr-<+codebase.commitSha>
+                      optimize: true
+                      remoteCacheRepo: ghcr.io/suranc/spring-forward-harness-example
                       resources:
                         limits:
                           memory: 2Gi
