@@ -78,6 +78,8 @@ template:
                       repo: <+pipeline.variables.docker_image>
                       tags:
                         - <+pipeline.variables.docker_tag>
+                      optimize: true
+                      remoteCacheRepo: <+pipeline.variables.docker_image>
                       resources:
                         limits:
                           memory: 2Gi
@@ -107,6 +109,7 @@ template:
             caching:
               enabled: false
               paths: []
+          description: ""
       - stage:
           name: Deploy to Test
           identifier: Deploy_to_Test
