@@ -1,0 +1,32 @@
+template:
+  name: Deploy Google Cloud Run
+  identifier: Deploy_Google_Cloud_Run
+  versionLabel: 1.0.0
+  type: Step
+  tags: {}
+  spec:
+    type: ShellScript
+    timeout: 10m
+    spec:
+      shell: Bash
+      onDelegate: true
+      source:
+        type: Inline
+        spec:
+          script: |-
+            set -ex
+
+            /opt/harness-delegate/google-cloud-sdk/bin/gcloud run deploy <+infra.variables.serviceName> \
+              --image=<+spec.environmentVariables.artifact_image> \
+              --allow-unauthenticated \
+              --platform=managed \
+              --max-instances=<+infra.variables.maxinstances> \
+              --region=<+infra.variables.region> \
+              --project=<+infra.variables.projectID> \
+              --ingress=<+infra.variables.ingress>
+      environmentVariables:
+        - name: artifact_image
+          type: String
+          value: <+input>.default(<+artifact.image>)
+      outputVariables: []
+      delegateSelectors: <+input>
