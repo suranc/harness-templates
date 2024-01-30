@@ -1,0 +1,43 @@
+template:
+  name: Deploy CloudRun Canary
+  type: Step
+  spec:
+    type: ShellScript
+    spec:
+      shell: Bash
+      executionTarget: {}
+      source:
+        type: Inline
+        spec:
+          script: |-
+            source ~/.bashrc
+
+            # Clone manifest
+            workdir=$(mktemp -d)
+            cd $workdir
+            repo=$(echo <+infra.variables.serviceYamlRepo>|sed 's#https://##')
+            git clone https://<+infra.variables.serviceYamlGitHubPAT>@$repo
+            cd *
+
+            # Get current CloudRun Revision
+            current_revision=$(gcloud run revisions list --service=<+infra.variables.serviceName> --region=<+infra.variables.region> --limit=1|grep -v REVISION|awk '{print $2}')
+
+            # Generate values.yaml with values in service YAML to override
+            cat >values.yaml <<- EOF
+            imageName: <+artifacts.primary.image>
+            lastRevision: $current_revision
+            serviceName: <+infra.variables.serviceName>
+            EOF
+
+            # Render service YAML
+            go-template -t <+infra.variables.serviceYamlPath> -f values.yaml > rendered-service-def.yaml
+            cat rendered-service-def.yaml
+
+            gcloud run services replace --region=<+infra.variables.region> rendered-service-def.yaml
+      environmentVariables: []
+      outputVariables: []
+      delegateSelectors:
+        - gcp-workload-delegate
+    timeout: 10m
+  identifier: Deploy_CloudRun_Canary
+  versionLabel: "1"
