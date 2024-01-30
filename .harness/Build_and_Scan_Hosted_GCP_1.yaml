@@ -1,0 +1,63 @@
+template:
+  name: Build and Scan Hosted GCP
+  type: Stage
+  spec:
+    type: CI
+    spec:
+      cloneCodebase: true
+      platform:
+        os: Linux
+        arch: Amd64
+      runtime:
+        type: Cloud
+        spec: {}
+      execution:
+        steps:
+          - step:
+              type: Plugin
+              name: GCP_OIDC
+              identifier: gcpoidc
+              spec:
+                connectorRef: account.DockerHub_Account_Level_Connect_Through_Platform
+                image: harnesscommunitytest/drone-gcp-oidc:linux-amd64
+                settings:
+                  service_account_email_id: secops-9982@sales-209522.iam.gserviceaccount.com
+                  project_Id: "980596850008"
+                  pool_Id: suranharnessaccountconnector
+                  provider_Id: suranharnessaccount
+                imagePullPolicy: Always
+          - step:
+              type: BuildAndPushGAR
+              name: BuildAndPushGAR_1
+              identifier: BuildAndPushGAR_1
+              spec:
+                connectorRef: account.GCP_OIDC
+                host: us-central1-docker.pkg.dev
+                projectID: sales-209522
+                imageName: spring-forward/spring-forward
+                tags:
+                  - harness-<+codebase.commitSha>
+          - step:
+              type: Grype
+              name: Scan Image with Grype
+              identifier: Scan_Image_with_Grype
+              spec:
+                mode: orchestration
+                config: default
+                target:
+                  type: container
+                  name: <+pipeline.variables.docker_image>
+                  variant: <+pipeline.variables.docker_tag>
+                advanced:
+                  log:
+                    level: info
+                privileged: true
+                image:
+                  type: docker_v2
+                  name: <+pipeline.stages.Preprocessing.spec.execution.steps.Prepare_Variables.output.outputVariables.docker_repository>
+                  domain: <+pipeline.stages.Preprocessing.spec.execution.steps.Prepare_Variables.output.outputVariables.docker_registry>
+                  access_id: oauth2accesstoken
+                  access_token: <+pipeline.stages.Build.spec.execution.steps.gcpoidc.output.outputVariables.GCLOUD_ACCESS_TOKEN>
+                  tag: <+pipeline.variables.docker_tag>
+  identifier: Build_and_Scan_Hosted_GCP
+  versionLabel: "1"
