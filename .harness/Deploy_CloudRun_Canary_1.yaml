@@ -24,7 +24,7 @@ template:
 
             # Generate values.yaml with values in service YAML to override
             cat >values.yaml <<- EOF
-            imageName: <+artifacts.primary.image>
+            imageName: $artifactVersion
             lastRevision: $current_revision
             serviceName: <+infra.variables.serviceName>
             EOF
@@ -34,10 +34,13 @@ template:
             cat rendered-service-def.yaml
 
             gcloud run services replace --region=<+infra.variables.region> rendered-service-def.yaml
-      environmentVariables: []
+      environmentVariables:
+        - name: artifactVersion
+          type: String
+          value: <+input>.default(<+artifacts.primary.image>)
       outputVariables: []
       delegateSelectors:
-        - gcp-workload-delegate
+        - <+infra.variables.deployDelegate>
     timeout: 10m
   identifier: Deploy_CloudRun_Canary
   versionLabel: "1"
