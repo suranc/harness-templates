@@ -1,0 +1,124 @@
+template:
+  name: Deploy CloudRun with Canary
+  identifier: Deploy_CloudRun_with_Canary
+  versionLabel: "1"
+  type: Stage
+  tags: {}
+  spec:
+    type: Deployment
+    spec:
+      deploymentType: CustomDeployment
+      customDeploymentRef:
+        templateRef: account.Google_Cloud_Run
+        versionLabel: "2"
+      execution:
+        steps:
+          - step:
+              name: Fetch Instances
+              identifier: fetchInstances
+              type: FetchInstanceScript
+              timeout: 10m
+              spec: {}
+          - step:
+              name: Deploy Canary
+              identifier: Deploy_Canary
+              template:
+                templateRef: account.Deploy_CloudRun_Canary
+                versionLabel: "1"
+          - step:
+              name: Shift Canary Traffic to 25 Percent
+              identifier: Shift_Canary_Traffic_to_25_Percent
+              template:
+                templateRef: account.CloudRun_Shift_Traffic
+                versionLabel: "1"
+                templateInputs:
+                  type: ShellScript
+                  spec:
+                    environmentVariables:
+                      - name: trafficPercentage
+                        type: String
+                        value: "25"
+          - step:
+              type: Verify
+              name: Verify
+              identifier: Verify
+              spec:
+                isMultiServicesOrEnvs: false
+                type: Canary
+                monitoredService:
+                  type: Default
+                  spec: {}
+                spec:
+                  sensitivity: MEDIUM
+                  duration: 15m
+                  deploymentTag: <+artifacts.primary.tag>
+              timeout: 2h
+              failureStrategies:
+                - onFailure:
+                    errors:
+                      - Verification
+                    action:
+                      type: ManualIntervention
+                      spec:
+                        timeout: 2h
+                        onTimeout:
+                          action:
+                            type: StageRollback
+                - onFailure:
+                    errors:
+                      - Unknown
+                    action:
+                      type: ManualIntervention
+                      spec:
+                        timeout: 2h
+                        onTimeout:
+                          action:
+                            type: Ignore
+          - step:
+              name: Rollout Canary
+              identifier: Rollout_Canary
+              template:
+                templateRef: account.CloudRun_Shift_Traffic
+                versionLabel: "1"
+                templateInputs:
+                  type: ShellScript
+                  spec:
+                    environmentVariables:
+                      - name: trafficPercentage
+                        type: String
+                        value: "100"
+        rollbackSteps:
+          - step:
+              name: Deploy Revision
+              identifier: Deploy_Revision
+              template:
+                templateRef: account.Deploy_CloudRun_Canary
+                versionLabel: "1"
+          - step:
+              name: Shift traffic to 100
+              identifier: Shift_traffic_to_100
+              template:
+                templateRef: account.CloudRun_Shift_Traffic
+                versionLabel: "1"
+                templateInputs:
+                  type: ShellScript
+                  spec:
+                    environmentVariables:
+                      - name: trafficPercentage
+                        type: String
+                        value: "100"
+      environment:
+        environmentRef: <+input>
+        deployToAll: false
+        environmentInputs: <+input>
+        serviceOverrideInputs: <+input>
+        infrastructureDefinitions: <+input>
+      service:
+        serviceRef: <+input>
+        serviceInputs: <+input>
+    failureStrategies:
+      - onFailure:
+          errors:
+            - AllErrors
+          action:
+            type: StageRollback
