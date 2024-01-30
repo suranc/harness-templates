@@ -1,0 +1,25 @@
+template:
+  name: CloudRun Shift Traffic
+  type: Step
+  spec:
+    type: ShellScript
+    spec:
+      shell: Bash
+      executionTarget: {}
+      source:
+        type: Inline
+        spec:
+          script: |-
+            source ~/.bashrc
+
+            gcloud run services update-traffic --to-revisions=LATEST=$trafficPercentage <+infra.variables.serviceName> --region=<+infra.variables.region>
+      environmentVariables:
+        - name: trafficPercentage
+          type: String
+          value: <+input>
+      outputVariables: []
+      delegateSelectors: []
+    timeout: 10m
+  identifier: CloudRun_Shift_Traffic
+  versionLabel: "1"
+  description: This step shifts traffic to the latest revision to the amount set in the trafficPercentage input
