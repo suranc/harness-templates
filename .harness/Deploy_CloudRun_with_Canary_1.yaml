@@ -25,6 +25,13 @@ template:
               template:
                 templateRef: account.Deploy_CloudRun_Canary
                 versionLabel: "1"
+                templateInputs:
+                  type: ShellScript
+                  spec:
+                    environmentVariables:
+                      - name: artifactVersion
+                        type: String
+                        value: <+input>.default(<+artifacts.primary.image>)
           - step:
               name: Shift Canary Traffic to 25 Percent
               identifier: Shift_Canary_Traffic_to_25_Percent
@@ -94,6 +101,13 @@ template:
               template:
                 templateRef: account.Deploy_CloudRun_Canary
                 versionLabel: "1"
+                templateInputs:
+                  type: ShellScript
+                  spec:
+                    environmentVariables:
+                      - name: artifactVersion
+                        type: String
+                        value: <+input>.default(<+artifacts.primary.image>)
           - step:
               name: Shift traffic to 100
               identifier: Shift_traffic_to_100
