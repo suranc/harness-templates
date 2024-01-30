@@ -18,7 +18,8 @@ template:
           type: String
           value: <+input>
       outputVariables: []
-      delegateSelectors: []
+      delegateSelectors:
+        - <+infra.variables.deployDelegate>
     timeout: 10m
   identifier: CloudRun_Shift_Traffic
   versionLabel: "1"
