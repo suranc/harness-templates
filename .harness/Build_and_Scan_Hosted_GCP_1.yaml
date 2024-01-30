@@ -21,10 +21,10 @@ template:
                 connectorRef: account.DockerHub_Account_Level_Connect_Through_Platform
                 image: harnesscommunitytest/drone-gcp-oidc:linux-amd64
                 settings:
-                  service_account_email_id: secops-9982@sales-209522.iam.gserviceaccount.com
-                  project_Id: "980596850008"
-                  pool_Id: suranharnessaccountconnector
-                  provider_Id: suranharnessaccount
+                  service_account_email_id: <+stage.variables.serviceAccountEmailId>
+                  project_Id: <+stage.variables.projectNumber>
+                  pool_Id: <+stage.variables.poolId>
+                  provider_Id: <+stage.variables.providerId>
                 imagePullPolicy: Always
           - step:
               type: BuildAndPushGAR
@@ -32,11 +32,11 @@ template:
               identifier: BuildAndPushGAR_1
               spec:
                 connectorRef: account.GCP_OIDC
-                host: us-central1-docker.pkg.dev
-                projectID: sales-209522
-                imageName: spring-forward/spring-forward
+                host: <+stage.variables.host>
+                projectID: <+stage.variables.project>
+                imageName: <+stage.variables.imageRepo>
                 tags:
-                  - harness-<+codebase.commitSha>
+                  - <+stage.variables.imageTag>
           - step:
               type: Grype
               name: Scan Image with Grype
@@ -46,18 +46,62 @@ template:
                 config: default
                 target:
                   type: container
-                  name: <+pipeline.variables.docker_image>
-                  variant: <+pipeline.variables.docker_tag>
+                  name: <+stage.variables.host>/<+stage.variables.project>/<+stage.variables.imageRepo>
+                  variant: <+stage.variables.imageTag>
                 advanced:
                   log:
                     level: info
                 privileged: true
                 image:
                   type: docker_v2
-                  name: <+pipeline.stages.Preprocessing.spec.execution.steps.Prepare_Variables.output.outputVariables.docker_repository>
-                  domain: <+pipeline.stages.Preprocessing.spec.execution.steps.Prepare_Variables.output.outputVariables.docker_registry>
+                  name: <+stage.variables.project>/<+stage.variables.imageRepo>
+                  domain: <+stage.variables.host>
                   access_id: oauth2accesstoken
-                  access_token: <+pipeline.stages.Build.spec.execution.steps.gcpoidc.output.outputVariables.GCLOUD_ACCESS_TOKEN>
-                  tag: <+pipeline.variables.docker_tag>
+                  access_token: <+stage.spec.execution.steps.gcpoidc.output.outputVariables.GCLOUD_ACCESS_TOKEN>
+                  tag: <+stage.variables.imageTag>
+      caching:
+        enabled: true
+        paths: []
+    variables:
+      - name: host
+        type: String
+        description: GAR host containing the docker image being built
+        required: false
+        value: <+input>
+      - name: project
+        type: String
+        description: GCP Project ID used for GAR docker repository
+        required: false
+        value: <+input>
+      - name: imageRepo
+        type: String
+        description: Repository name in GAR where the docker image will be pushed
+        required: false
+        value: <+input>
+      - name: serviceAccountEmailId
+        type: String
+        description: Email ID of the service account used for OIDC login
+        required: false
+        value: <+input>
+      - name: poolId
+        type: String
+        description: Workload Pool ID used for OIDC login
+        required: false
+        value: <+input>
+      - name: providerId
+        type: String
+        description: Workload Provider ID used by OIDC login
+        required: false
+        value: <+input>
+      - name: projectNumber
+        type: String
+        description: GCP Project Number (not ID) used for OIDC login
+        required: false
+        value: <+input>
+      - name: imageTag
+        type: String
+        description: Docker image tag to build and push
+        required: false
+        value: <+input>
   identifier: Build_and_Scan_Hosted_GCP
   versionLabel: "1"
