@@ -43,10 +43,23 @@ template:
           identifier: Build_and_Scan
           template:
             templateRef: account.Build_and_Scan_Hosted_GCP
-            versionLabel: "1"
+            versionLabel: "2"
             gitBranch: master
             templateInputs:
               type: CI
+              spec:
+                execution:
+                  steps:
+                    - step:
+                        identifier: gcpoidc
+                        type: Plugin
+                        spec:
+                          connectorRef: <+input>
+                    - step:
+                        identifier: BuildAndPushGAR_1
+                        type: BuildAndPushGAR
+                        spec:
+                          connectorRef: <+input>
               variables:
                 - name: host
                   type: String
@@ -59,16 +72,16 @@ template:
                   value: <+pipeline.stages.Preprocessing.spec.execution.steps.Prepare_Variables.output.outputVariables.garRepository>
                 - name: serviceAccountEmailId
                   type: String
-                  value: secops-9982@sales-209522.iam.gserviceaccount.com
+                  value: <+input>
                 - name: poolId
                   type: String
-                  value: suranharnessaccountconnector
+                  value: <+input>
                 - name: providerId
                   type: String
-                  value: suranharnessaccount
+                  value: <+input>
                 - name: projectNumber
                   type: String
-                  value: "980596850008"
+                  value: <+input>
                 - name: imageTag
                   type: String
                   value: <+pipeline.variables.docker_tag>
@@ -91,6 +104,49 @@ template:
                 service:
                   serviceRef: <+input>
                   serviceInputs: <+input>
+      - stage:
+          name: Approval
+          identifier: Approval
+          description: ""
+          type: Approval
+          spec:
+            execution:
+              steps:
+                - step:
+                    name: Approval
+                    identifier: Approval
+                    type: HarnessApproval
+                    timeout: 1d
+                    spec:
+                      approvalMessage: |-
+                        Please review the following information
+                        and approve the pipeline progression
+                      includePipelineExecutionHistory: true
+                      approvers:
+                        minimumCount: 1
+                        disallowPipelineExecutor: false
+                        userGroups: <+input>
+                      isAutoRejectEnabled: false
+                      approverInputs: []
+          tags: {}
+      - stage:
+          name: Deploy to Prod
+          identifier: Deploy_to_Prod
+          tags: {}
+          template:
+            templateRef: account.Deploy_CloudRun_with_Canary
+            versionLabel: "1"
+            templateInputs:
+              type: Deployment
+              spec:
+                environment:
+                  environmentRef: <+input>
+                  environmentInputs: <+input>
+                  serviceOverrideInputs: <+input>
+                  infrastructureDefinitions: <+input>
+                service:
+                  useFromStage:
+                    stage: Deploy_to_Test
     properties:
       ci:
         codebase:
