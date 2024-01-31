@@ -1,0 +1,77 @@
+template:
+  name: Google Cloud Run
+  identifier: Google_Cloud_Run
+  type: CustomDeployment
+  tags: {}
+  spec:
+    infrastructure:
+      variables:
+        - name: projectID
+          type: String
+          value: <+input>
+          description: GCP Project ID
+        - name: region
+          type: String
+          value: <+input>
+          description: GCP Region
+        - name: serviceName
+          type: String
+          value: <+service.name>
+          description: The name of the Google Cloud Run service to deploy
+          required: false
+        - name: serviceYamlRepo
+          type: String
+          value: <+input>
+          description: URL of the Repo that contains the service spec for this environment
+          required: false
+        - name: serviceYamlPath
+          type: String
+          value: <+input>
+          description: Relative path to the service's YAML definition file from the base of the repository
+          required: false
+        - name: serviceYamlGitHubPAT
+          type: String
+          value: <+input>
+          description: Secret reference to a secret containing a PAT that can clone the service's YAML definition
+          required: false
+        - name: deployDelegate
+          type: String
+          value: <+input>
+          description: Delegate Selector for the delegate with the correct GCP IAM role to deploy to this environment
+          required: false
+      fetchInstancesScript:
+        store:
+          type: Inline
+          spec:
+            content: |
+              #
+              # Script is expected to query Infrastructure and dump json
+              # in $INSTANCE_OUTPUT_PATH file path
+              #
+              # Harness is expected to initialize ${INSTANCE_OUTPUT_PATH}
+              # environment variable - a random unique file path on delegate,
+              # so script execution can save the result.
+              #
+
+              cat > $INSTANCE_OUTPUT_PATH << _EOF_
+              {
+                "data": [
+                  {
+                    "name": "<+service.name>-<+env.name>-<+infra.name>"
+                  }
+                ]
+              } 
+              _EOF_
+      instanceAttributes:
+        - name: instancename
+          jsonPath: name
+          description: ""
+        - name: hostname
+          jsonPath: name
+          description: ""
+      instancesListPath: data
+    execution:
+      stepTemplateRefs:
+        - account.CloudRun_Shift_Traffic
+        - account.Deploy_CloudRun_Canary
+  versionLabel: "2"
