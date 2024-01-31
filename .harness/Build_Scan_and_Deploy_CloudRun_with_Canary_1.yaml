@@ -1,0 +1,112 @@
+template:
+  name: Build Scan and Deploy CloudRun with Canary
+  type: Pipeline
+  spec:
+    stages:
+      - stage:
+          name: Preprocessing
+          identifier: Preprocessing
+          description: ""
+          type: Custom
+          spec:
+            execution:
+              steps:
+                - step:
+                    type: ShellScript
+                    name: Prepare Variables
+                    identifier: Prepare_Variables
+                    spec:
+                      shell: Bash
+                      executionTarget: {}
+                      source:
+                        type: Inline
+                        spec:
+                          script: |-
+                            export GAR_HOST=$(echo <+pipeline.variables.docker_image> | cut -d'/' -f1)
+                            export GAR_PROJECT=$(echo <+pipeline.variables.docker_image> | cut -d'/' -f2)
+                            export GAR_REPOSITORY=$(echo <+pipeline.variables.docker_image> | cut -d'/' -f3-)
+                      environmentVariables: []
+                      outputVariables:
+                        - name: garHost
+                          type: String
+                          value: GAR_HOST
+                        - name: garProject
+                          type: String
+                          value: GAR_PROJECT
+                        - name: garRepository
+                          type: String
+                          value: GAR_REPOSITORY
+                    timeout: 10m
+          tags: {}
+      - stage:
+          name: Build and Scan
+          identifier: Build_and_Scan
+          template:
+            templateRef: account.Build_and_Scan_Hosted_GCP
+            versionLabel: "1"
+            gitBranch: master
+            templateInputs:
+              type: CI
+              variables:
+                - name: host
+                  type: String
+                  value: <+pipeline.stages.Preprocessing.spec.execution.steps.Prepare_Variables.output.outputVariables.garHost>
+                - name: project
+                  type: String
+                  value: <+pipeline.stages.Preprocessing.spec.execution.steps.Prepare_Variables.output.outputVariables.garProject>
+                - name: imageRepo
+                  type: String
+                  value: <+pipeline.stages.Preprocessing.spec.execution.steps.Prepare_Variables.output.outputVariables.garRepository>
+                - name: serviceAccountEmailId
+                  type: String
+                  value: secops-9982@sales-209522.iam.gserviceaccount.com
+                - name: poolId
+                  type: String
+                  value: suranharnessaccountconnector
+                - name: providerId
+                  type: String
+                  value: suranharnessaccount
+                - name: projectNumber
+                  type: String
+                  value: "980596850008"
+                - name: imageTag
+                  type: String
+                  value: <+pipeline.variables.docker_tag>
+      - stage:
+          name: Deploy to Test
+          identifier: Deploy_to_Test
+          tags: {}
+          template:
+            templateRef: account.Deploy_CloudRun_with_Canary
+            versionLabel: "1"
+            gitBranch: master
+            templateInputs:
+              type: Deployment
+              spec:
+                environment:
+                  environmentRef: <+input>
+                  environmentInputs: <+input>
+                  serviceOverrideInputs: <+input>
+                  infrastructureDefinitions: <+input>
+                service:
+                  serviceRef: <+input>
+                  serviceInputs: <+input>
+    properties:
+      ci:
+        codebase:
+          connectorRef: account.suranc_Account_Level_Connected_Through_Platform
+          repoName: spring-forward-harness-example
+          build: <+input>
+    variables:
+      - name: docker_image
+        type: String
+        description: Full image name of the GAR image to build and deploy
+        required: false
+        value: <+input>
+      - name: docker_tag
+        type: String
+        description: Docker image tag to build and deploy
+        required: false
+        value: <+input>
+  identifier: Build_Scan_and_Deploy_CloudRun_with_Canary
+  versionLabel: "1"
