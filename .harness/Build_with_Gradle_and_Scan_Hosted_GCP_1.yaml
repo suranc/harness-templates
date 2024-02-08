@@ -1,0 +1,107 @@
+template:
+  name: Build with Gradle and Scan Hosted GCP
+  type: Stage
+  spec:
+    type: CI
+    spec:
+      cloneCodebase: true
+      platform:
+        os: Linux
+        arch: Amd64
+      runtime:
+        type: Cloud
+        spec: {}
+      execution:
+        steps:
+          - step:
+              type: Plugin
+              name: GCP_OIDC
+              identifier: gcpoidc
+              spec:
+                connectorRef: <+input>
+                image: harnesscommunitytest/drone-gcp-oidc:linux-amd64
+                settings:
+                  service_account_email_id: <+stage.variables.serviceAccountEmailId>
+                  project_Id: <+stage.variables.projectNumber>
+                  pool_Id: <+stage.variables.poolId>
+                  provider_Id: <+stage.variables.providerId>
+                imagePullPolicy: Always
+          - step:
+              type: BuildAndPushGAR
+              name: BuildAndPushGAR_1
+              identifier: BuildAndPushGAR_1
+              spec:
+                connectorRef: <+input>
+                host: <+stage.variables.host>
+                projectID: <+stage.variables.project>
+                imageName: <+stage.variables.imageRepo>
+                tags:
+                  - <+stage.variables.imageTag>
+          - step:
+              type: Grype
+              name: Scan Image with Grype
+              identifier: Scan_Image_with_Grype
+              spec:
+                mode: orchestration
+                config: default
+                target:
+                  type: container
+                  name: <+stage.variables.host>/<+stage.variables.project>/<+stage.variables.imageRepo>
+                  variant: <+stage.variables.imageTag>
+                advanced:
+                  log:
+                    level: info
+                privileged: true
+                image:
+                  type: docker_v2
+                  name: <+stage.variables.project>/<+stage.variables.imageRepo>
+                  domain: <+stage.variables.host>
+                  access_id: oauth2accesstoken
+                  access_token: <+stage.spec.execution.steps.gcpoidc.output.outputVariables.GCLOUD_ACCESS_TOKEN>
+                  tag: <+stage.variables.imageTag>
+      caching:
+        enabled: true
+        paths: []
+    variables:
+      - name: host
+        type: String
+        description: GAR host containing the docker image being built
+        required: false
+        value: <+input>
+      - name: project
+        type: String
+        description: GCP Project ID used for GAR docker repository
+        required: false
+        value: <+input>
+      - name: imageRepo
+        type: String
+        description: Repository name in GAR where the docker image will be pushed
+        required: false
+        value: <+input>
+      - name: serviceAccountEmailId
+        type: String
+        description: Email ID of the service account used for OIDC login
+        required: false
+        value: <+input>
+      - name: poolId
+        type: String
+        description: Workload Pool ID used for OIDC login
+        required: false
+        value: <+input>
+      - name: providerId
+        type: String
+        description: Workload Provider ID used by OIDC login
+        required: false
+        value: <+input>
+      - name: projectNumber
+        type: String
+        description: GCP Project Number (not ID) used for OIDC login
+        required: false
+        value: <+input>
+      - name: imageTag
+        type: String
+        description: Docker image tag to build and push
+        required: false
+        value: <+input>
+  identifier: Build_with_Gradle_and_Scan_Hosted_GCP
+  versionLabel: "1"
