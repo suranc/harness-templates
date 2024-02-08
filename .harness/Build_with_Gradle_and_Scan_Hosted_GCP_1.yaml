@@ -55,8 +55,6 @@ template:
                   ./gradlew build
                   ./gradlew publish
                   PATH=$OLD_PATH
-
-                  exit 1
           - step:
               type: BuildAndPushGAR
               name: BuildAndPushGAR_1
