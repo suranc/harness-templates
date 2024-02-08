@@ -27,6 +27,37 @@ template:
                   provider_Id: <+stage.variables.providerId>
                 imagePullPolicy: Always
           - step:
+              type: Run
+              name: Build with Gradle
+              identifier: Build_with_Gradle
+              spec:
+                shell: Sh
+                command: |-
+                  mkdir gcloud-stub/
+                  cat << EOS > gcloud-stub/gcloud
+                  #!/bin/bash
+                  cat << EOF
+                  {
+                    "credential": {
+                      "access_token": "<+execution.steps.gcpoidc.output.outputVariables.GCLOUD_ACCESS_TOKEN>",
+                      "id_token": null,
+                      "token_expiry": "2034-02-07T00:40:11Z"
+                    }
+                  }
+                  EOF
+                  EOS
+                  chmod +x gcloud-stub/gcloud
+
+                  export JAVA_HOME="$JAVA_HOME_17_X64"
+
+                  OLD_PATH=$PATH
+                  PATH=/harness/gcloud-stub:$PATH
+                  ./gradlew build
+                  ./gradlew publish
+                  PATH=$OLD_PATH
+
+                  exit 1
+          - step:
               type: BuildAndPushGAR
               name: BuildAndPushGAR_1
               identifier: BuildAndPushGAR_1
