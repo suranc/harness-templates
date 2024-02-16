@@ -19,12 +19,13 @@ template:
               identifier: gcpoidc
               spec:
                 connectorRef: <+input>
-                image: harnesscommunitytest/drone-gcp-oidc:linux-amd64
+                image: plugins/gcp-oidc:latest
                 settings:
                   service_account_email_id: <+stage.variables.serviceAccountEmailId>
                   project_Id: <+stage.variables.projectNumber>
                   pool_Id: <+stage.variables.poolId>
                   provider_Id: <+stage.variables.providerId>
+                  create_application_credentials_file: "true"
                 imagePullPolicy: Always
           - step:
               type: Run
@@ -33,20 +34,7 @@ template:
               spec:
                 shell: Sh
                 command: |-
-                  mkdir gcloud-stub/
-                  cat << EOS > gcloud-stub/gcloud
-                  #!/bin/bash
-                  cat << EOF
-                  {
-                    "credential": {
-                      "access_token": "<+execution.steps.gcpoidc.output.outputVariables.GCLOUD_ACCESS_TOKEN>",
-                      "id_token": null,
-                      "token_expiry": "2034-02-07T00:40:11Z"
-                    }
-                  }
-                  EOF
-                  EOS
-                  chmod +x gcloud-stub/gcloud
+                  gcloud auth login --brief --cred-file <+execution.steps.gcpoidc.output.outputVariables.GOOGLE_APPLICATION_CREDENTIALS>
 
                   export JAVA_HOME="$JAVA_HOME_17_X64"
 
