@@ -67,7 +67,6 @@ template:
                       connectorRef: account.harnessImage
                       image: docker:dind
                       shell: Sh
-                      command: dockerd
                       privileged: true
                 - step:
                     type: BuildAndPushDockerRegistry
