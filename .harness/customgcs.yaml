@@ -1,0 +1,35 @@
+service:
+  name: custom-gcs
+  identifier: customgcs
+  orgIdentifier: default
+  projectIdentifier: GCP
+  serviceDefinition:
+    spec:
+      customDeploymentRef:
+        templateRef: account.Google_Cloud_Run
+        versionLabel: 1.0.0
+      artifacts:
+        primary:
+          primaryArtifactRef: <+input>
+          sources:
+            - identifier: GCS
+              spec:
+                version: <+input>
+                timeout: 1d
+                scripts:
+                  fetchAllArtifacts:
+                    artifactsArrayPath: buckets
+                    versionPath: bucket
+                    spec:
+                      shell: Bash
+                      source:
+                        spec:
+                          script: |-
+                            . /opt/harness-delegate/.bashrc
+
+                            gcloud storage ls gs://suranbucket/ | jq -nR '[inputs | select(length>0)]' | jq '. | map({bucket: .}) | {buckets: .}' > $HARNESS_ARTIFACT_RESULT_PATH
+                        type: Inline
+                delegateSelectors:
+                  - gcp-workload-delegate
+              type: CustomArtifact
+    type: CustomDeployment
