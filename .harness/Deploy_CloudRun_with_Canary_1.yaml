@@ -107,7 +107,7 @@ template:
                     environmentVariables:
                       - name: artifactVersion
                         type: String
-                        value: <+rollbackArtifacts.primary.image>
+                        value: <+rollbackArtifact.image>
           - step:
               name: Shift traffic to 100
               identifier: Shift_traffic_to_100
