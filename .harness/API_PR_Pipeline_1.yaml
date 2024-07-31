@@ -1,0 +1,76 @@
+template:
+  name: API PR Pipeline
+  type: Pipeline
+  projectIdentifier: Test_Bed
+  orgIdentifier: default
+  spec:
+    properties:
+      ci:
+        codebase:
+          connectorRef: <+input>
+          repoName: <+input>
+          build: <+input>
+    stages:
+      - stage:
+          name: Build
+          identifier: Build
+          template:
+            templateRef: API_Build
+            versionLabel: "1"
+            templateInputs:
+              type: CI
+              spec:
+                infrastructure:
+                  type: KubernetesDirect
+                  spec:
+                    connectorRef: <+input>
+                    namespace: <+input>
+                execution:
+                  steps:
+                    - step:
+                        identifier: Validate
+                        type: Run
+                        spec:
+                          connectorRef: <+input>
+                          image: <+input>
+                    - step:
+                        identifier: Code_Generation
+                        type: Run
+                        spec:
+                          connectorRef: <+input>
+                          image: <+input>
+                    - step:
+                        identifier: Create_Artifact
+                        type: Run
+                        spec:
+                          connectorRef: <+input>
+                          image: <+input>
+                    - step:
+                        identifier: Upload_Artifact
+                        type: ArtifactoryUpload
+                        spec:
+                          connectorRef: <+input>
+              variables:
+                - name: artifactId
+                  type: String
+                  value: <+input>
+                - name: groupId
+                  type: String
+                  value: <+input>
+                - name: mavenRepository
+                  type: String
+                  value: <+input>
+    notificationRules:
+      - name: Pipeline Notification
+        identifier: Pipeline_Notification
+        pipelineEvents:
+          - type: AllEvents
+        notificationMethod:
+          type: Email
+          spec:
+            userGroups: []
+            recipients:
+              - christopher.suran@harness.io
+        enabled: true
+  identifier: API_PR_Pipeline
+  versionLabel: "1"
