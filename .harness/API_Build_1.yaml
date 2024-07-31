@@ -1,0 +1,72 @@
+template:
+  name: API Build
+  type: Stage
+  projectIdentifier: Test_Bed
+  orgIdentifier: default
+  spec:
+    type: CI
+    spec:
+      cloneCodebase: true
+      infrastructure:
+        type: KubernetesDirect
+        spec:
+          connectorRef: <+input>
+          namespace: <+input>
+          automountServiceAccountToken: true
+          nodeSelector: {}
+          os: Linux
+      execution:
+        steps:
+          - step:
+              type: Run
+              name: Validate
+              identifier: Validate
+              spec:
+                connectorRef: <+input>
+                image: <+input>
+                shell: Sh
+                command: ./validate.sh
+          - step:
+              type: Run
+              name: Code Generation
+              identifier: Code_Generation
+              spec:
+                connectorRef: <+input>
+                image: <+input>
+                shell: Sh
+                command: ./codegen.sh
+          - step:
+              type: Run
+              name: Create Artifact
+              identifier: Create_Artifact
+              spec:
+                connectorRef: <+input>
+                image: <+input>
+                shell: Sh
+                command: ./mvnw package
+          - step:
+              type: ArtifactoryUpload
+              name: Upload Artifact
+              identifier: Upload_Artifact
+              spec:
+                connectorRef: <+input>
+                target: <+stage.variables.mavenRepository>
+                sourcePath: target/code.jar
+    variables:
+      - name: artifactId
+        type: String
+        description: ""
+        required: false
+        value: <+input>
+      - name: groupId
+        type: String
+        description: ""
+        required: false
+        value: <+input>
+      - name: mavenRepository
+        type: String
+        description: ""
+        required: false
+        value: <+input>
+  identifier: API_Build
+  versionLabel: "1"
