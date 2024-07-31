@@ -1,0 +1,65 @@
+inputSet:
+  name: spring-forward
+  identifier: springforward
+  orgIdentifier: default
+  projectIdentifier: Test_Bed
+  pipeline:
+    identifier: API_PR_Pipeline
+    template:
+      templateInputs:
+        properties:
+          ci:
+            codebase:
+              connectorRef: account.suranc_GitHub_App_Account_Level
+              repoName: spring-forward-harness-example
+              build:
+                type: branch
+                spec:
+                  branch: <+trigger.branch>
+        stages:
+          - stage:
+              identifier: Build
+              template:
+                templateInputs:
+                  type: CI
+                  spec:
+                    infrastructure:
+                      type: KubernetesDirect
+                      spec:
+                        connectorRef: account.sacluster
+                        namespace: builds
+                    execution:
+                      steps:
+                        - step:
+                            identifier: Validate
+                            type: Run
+                            spec:
+                              connectorRef: account.harnessImage
+                              image: alpine
+                        - step:
+                            identifier: Code_Generation
+                            type: Run
+                            spec:
+                              connectorRef: account.harnessImage
+                              image: alpine
+                        - step:
+                            identifier: Create_Artifact
+                            type: Run
+                            spec:
+                              connectorRef: account.harnessImage
+                              image: alpine
+                        - step:
+                            identifier: Upload_Artifact
+                            type: ArtifactoryUpload
+                            spec:
+                              connectorRef: <+input>
+                  variables:
+                    - name: artifactId
+                      type: String
+                      value: spring-forward
+                    - name: groupId
+                      type: String
+                      value: io.harness
+                    - name: mavenRepository
+                      type: String
+                      value: snapshot-repo
