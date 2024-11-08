@@ -34,7 +34,7 @@ template:
                       source:
                         type: Inline
                         spec:
-                          script: echo <+pipeline.variables.message> extra stuff2
+                          script: echo <+pipeline.variables.message> extra stuff2nv1.0.0
                       environmentVariables: []
                       outputVariables: []
                     timeout: 10m
