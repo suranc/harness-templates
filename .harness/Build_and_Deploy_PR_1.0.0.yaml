@@ -71,12 +71,6 @@ template:
                       skipDryRun: false
               rollbackSteps:
                 - step:
-                    name: Canary Delete
-                    identifier: rollbackCanaryDelete
-                    type: K8sCanaryDelete
-                    timeout: 10m
-                    spec: {}
-                - step:
                     name: Rolling Rollback
                     identifier: rollingRollback
                     type: K8sRollingRollback
