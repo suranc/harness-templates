@@ -233,6 +233,10 @@ template:
                           type: K8sCanaryDelete
                           timeout: 10m
                           spec: {}
+                - insert:
+                    name: Approval
+                    identifier: Approval
+                    steps: <+input>
                 - stepGroup:
                     name: Primary Deployment
                     identifier: primaryDepoyment
