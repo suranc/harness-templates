@@ -151,7 +151,8 @@ template:
                     type: K8sRollingRollback
                     timeout: 10m
                     spec: {}
-          tags: {}
+          tags:
+            PreProduction: ""
           failureStrategies:
             - onFailure:
                 errors:
@@ -261,7 +262,8 @@ template:
                     type: K8sRollingRollback
                     timeout: 10m
                     spec: {}
-          tags: {}
+          tags:
+            Production: ""
           failureStrategies:
             - onFailure:
                 errors:
