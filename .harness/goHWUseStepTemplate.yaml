@@ -27,4 +27,4 @@ pipeline:
                       type: BuildAndPushDockerRegistry
                       spec:
                         tags: <+input>
-                        repo: ghcr.io/suranc/go-hello-world
+                        repo: ghcr.io/suranc/go-hello-world2
