@@ -1,0 +1,60 @@
+inputSet:
+  name: input1
+  identifier: input1
+  orgIdentifier: default
+  projectIdentifier: Test_Bed
+  pipeline:
+    identifier: GitX_Branching
+    template:
+      templateInputs:
+        properties:
+          ci:
+            codebase:
+              connectorRef: account.suranc_GitHub_App_Account_Level
+              repoName: spring-forward-harness-example
+              build:
+                type: branch
+                spec:
+                  branch: master
+        stages:
+          - stage:
+              identifier: Build_Image
+              type: CI
+              spec:
+                infrastructure:
+                  type: KubernetesDirect
+                  spec:
+                    connectorRef: account.sacluster
+                    namespace: default
+                execution:
+                  steps:
+                    - step:
+                        identifier: Build_Image
+                        type: BuildAndPushDockerRegistry
+                        spec:
+                          connectorRef: account.harnessImage
+          - stage:
+              identifier: Deploy_to_Test
+              type: Deployment
+              spec:
+                service:
+                  serviceRef: testservice
+                environment:
+                  environmentRef: dev
+                  infrastructureDefinitions:
+                    - identifier: dev
+          - stage:
+              identifier: Deploy_to_Prod
+              type: Deployment
+              spec:
+                environment:
+                  environmentRef: dev
+                  infrastructureDefinitions:
+                    - identifier: dev
+        variables:
+          - name: docker_image
+            type: String
+            value: image
+          - name: docker_tag
+            type: String
+            value: harness-<+codebase.commitSha>
