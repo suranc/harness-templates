@@ -33,6 +33,8 @@ template:
                           script: |-
                             export DOCKER_REGISTRY=$(echo <+pipeline.variables.docker_image> | cut -d'/' -f1)
                             export DOCKER_REPOSITORY=$(echo <+pipeline.variables.docker_image> | cut -d'/' -f2-)
+
+                            echo change
                       environmentVariables: []
                       outputVariables:
                         - name: docker_registry
