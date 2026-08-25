@@ -1,7 +1,8 @@
 pipeline:
   name: GitX Branching
   identifier: GitX_Branching
-  tags: {}
+  tags:
+    test: ""
   template:
     templateRef: account.Build_Scan_and_Deploy
     versionLabel: 1.0.0
